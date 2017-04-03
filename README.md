@@ -1,13 +1,13 @@
 # MacOSX-FileSystem-Filter
 A file system filter for Mac OS X
 
-##License
+## License
 
 The license model is a BSD Open Source License. This is a non-viral license, only asking that if you use it, you acknowledge the authors, in this case Slava Imameev.
 
 The project uses the distorm disassembler https://github.com/gdabah/distorm which is now released under BSD license.
 
-##Design
+## Design
 Mac OS X doesn't support a full fledged file system filtering like Windows as Apple believes that BSD stackable file system doesn't fit Mac OS X. The available kernel authorization subsystem ( kauth ) allows only filtering open requests and a limited number of operations on file/directory. It doesn't allow filtering read and write operations and provides a limited control over file system operations as a vnode is already created at the moment of kauth callback invoking. In Windows parlance a kauth callback is a postoperation callback for create/open request ( IRP_MJ_CREATE for Windows ), that is all you have for Mac OS X. Not much really.
 
  The filtering can also be implemented by registering MAC ( Mandatory Access Control ) layer. But MAC has limited functionality and not consistent in relation to file system filtering as it was not designed as a file system filter layer. Instead of being called by VFS layer MAC registered callbacks are scattered through the kernel code. They are called from system calls and other kernel subsystems, so MAC doesn't provide a consistent interface for VFS filter and if I remember correctly MAC was declared as deprecated for usage by third party developers.
@@ -24,10 +24,10 @@ The lack of a stackable file system support by Mac OS X VFS required to find a w
 
  The filter registers operations it wants to intercept in gFltVnodeVopHookEntries array. The skeleton filter immediately calls an original function from a hook but if you want to see a filter in action look at DldVNodeHook.cpp ( https://github.com/slavaim/MacOSX-Kernel-Filter/blob/master/DLDriver/DldVNodeHook.cpp ) which is a more advanced implementation at MacOSX-Kernel-Filter that also implements an isolation filter for read and write operations on a file by redirecting read and write to a sparse file on another volume. The isolation filter is implemented at DldCoveringVnode.cpp and a sparse file at DldSparseFile.cpp
  
-##Application
+## Application
 You can find a real world filter application in MacOSX-VFS-redirector( https://github.com/slavaim/MacOSX-VFS-redirector ) and a file system isolation filter( https://github.com/slavaim/MacOSX-Kernel-Filter/blob/master/DLDriver/DldVNodeHook.cpp , it is a part of a bigger project).
 
-##Example of call stacks when a filter is loaded
+## Example of call stacks when a filter is loaded
 FYI a set of call stacks when hooks are active  
 
 Lookup hook  
@@ -78,7 +78,7 @@ frame #7: 0xffffff8027536e76 kernel``ast_taken(reasons=<unavailable>, enable=<un
 frame #8: 0xffffff802761eeae kernel``i386_astintr(preemption=<unavailable>) + 46 at trap.c:1171  
 ```
 
-##Some words on unloading implementation
+## Some words on unloading implementation  
 The module has been made non-unloadable by taking a reference to IOKit com\_FsdFilter class in com\_FsdFilter::start routine. The reason is that unload for a hooking file system filter driver is a dangerous operation as it is hard to implement it correctly to avoid race conditions and preserve data consistency. To process unload correctly you need to process the following cases  
   
 - unhook all vnode tables  
